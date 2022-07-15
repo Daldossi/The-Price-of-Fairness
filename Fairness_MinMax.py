@@ -1,97 +1,38 @@
 # -*- coding: utf-8 -*-
 """
 OBIETTIVO: creare un modello di programmazione lineare che restituisca 
-un'allocazione equa delle risorse secondo lo schema della equità proporzionale (PF)
+un'allocazione equa delle risorse secondo lo schema della equità maxmin (MMF)
 """
 
 from pyomo.environ import *
 import numpy as np
 
 # Parse the training set
-# def ParseData(filename):
-#     fh = open(filename, 'r', encoding="utf-8")
-#     Xs = []
-#     Ys = []
-#     for line in fh:
-#         row = line.split('\t')        
-#         Xs.append( list(map(float, row[:-1])) )
-#         Ys.append( int(row[-1]) )
-#     return Xs, Ys  
-
 def ParseData(filename):
     doc = open(filename, 'r', encoding="utf-8")
-    Ps = [] # presenze
     Ns = [] # nomi
+    Ps = [] # presenze
     Ss = [] # surplus
     Fs = [] # consumo fisso
     Es = [] # copertura fotovoltaico
     for line in doc:
         row = line.split(',')        
-        Ps.append( int(float(row[0])) )
         Ns.append( line[1] )
-        Ss.append( int(line[8]) )
-        Fs.append( int(line[9]) )
-        Es.append( int(line[7]) )
+        Ps.append( int(float(row[0])) )
+        Ss.append( float(line[8]) )
+        Fs.append( float(line[9]) )
+        Es.append( float(line[7]) )
     return Ps, Ns, Es, Ss, Fs 
 
 def New(kWh, Fs, Es, Ps):
     """
-    
-    Parameters
-    ----------
-    Ps : TYPE
-        DESCRIPTION.
-    Fs : lista
-        alla posizione i-esima ha il consumo fisso dell'appartamento i-esimo.
-
-    Returns
-    -------
-    kWh_new : lista
-        
-    RC : reale non negativo
-        totale nuova capacità a disposizione.
-    
+    Sarà uguale a quella nel codice di Fairness_Proportional    
     """
-    n = len(Ps)
-    kWh_new = []
-    rc = 0
-    for i in range(1,n):
-        if Ps[i-1] == 1:
-            kWh_new.append(kWh[i-1])
-        else:
-            diff = Es[i] - Fs[i]
-            # se il fotovoltaico non copre il consumo fisso, 
-            # allora la richiesta non è ancora nulla
-            if (diff) <= 0:
-                kWh_new.append(-diff)
-            # se il fotovoltaico copre il consumo fisso e avanza anche energia,
-            # allora quell'energia in più va in rc
-            else:
-                kWh_new.append(0)
-                rc += (diff)
     return kWh_new, rc
 
-def MMF(Ks, RC, prezzi):
+def MMF(Ks, RC):
     """
-    Risolve il problema lineare per trovare la soluzione ottima che ...
-
-    Parameters
-    Ss : lista
-        lista di surplus (output di parsefile)
-    Ps : lista
-        lista di presenze (output di parsefile)
-    prezzi : lista
-        alla posizione i-esima c'è il prezzo in €/kWh per la famiglia i-esima
-    RC : intero
-        massima capacità a disposizione
-    
-
-    Returns
-    -------
-    Ds : lista
-        alla posizione i-esima c'è la percentuale sul surplus totale che viene
-        coperta dal fotovoltaico per l'appartamento i-esimo
-
+    max-min scheme
     """    
     
     n = len(Ks) # numero dei dati (= numero di appartamenti)
@@ -106,6 +47,7 @@ def MMF(Ks, RC, prezzi):
     model.u = Var(model.N, domain = NonNegativeReals)
 
     # Funzione obiettivo
+    ### ?Devo massimizzare lessicograficamente?
     model.obj = Objective(expr = sum((model.u[i]) for i in model.N), 
                           sense = maximize)
     
@@ -113,13 +55,17 @@ def MMF(Ks, RC, prezzi):
     kWh_covered = []       
     for i in model.N:
         kWh_covered.append( Ks[i-1]*model.u[i]/100) # kWh coperti dal fotovoltaico
-    # 1.Vincolo della massima capacità totale della risorsa
+    # 1. massima disponiiblità totale della risorsa
     model.maxtot = ConstraintList()   
     model.maxtot.add( expr = sum(kWh_covered) <= RC )
-    # 2.Vincolo della massima capacità individuale della risorsa
+    # 2. massima copertura individuale della risorsa
     model.maxind = ConstraintList()            
     for i in model.N:
         model.maxind.add( expr = kWh_covered[i-1] <= Ks[i-1] )
+    # 3. ogni appartamento deve avere una porzione non nulla di surplus coperto
+    model.minind = ConstraintList()
+    for i in model.N:
+        model.minind.add( expr = model.u[i] > 0 )
     
     # Risoluzione con gurobi
     solver = SolverFactory('gurobi')
@@ -141,7 +87,7 @@ def MMF(Ks, RC, prezzi):
     #             girone_k.append( (Ls[i-1][0], i) )
     #     dict_gironi['Girone' + str(k)] = girone_k
         
-    return perc_covered, kWh_covered
+    return perc_covered
 
 
 # -----------------------------------------------
@@ -150,36 +96,39 @@ def MMF(Ks, RC, prezzi):
 if __name__ == "__main__":
     
     ### DATI
-    # # Ns lista dei nomi delle famiglie
-    # # Ss lista dei consumi-surplus di ogni famiglia
-    # # Ps lista delle presenze delle famiglie Ps[i]=0,1
-    # # prezzi è la lista dei prezzi in €/kWh di ciascuna famiglia
-    Ps, Ns, Es, kWh, Fs  = ParseData('condominio2.csv')
+    ### Ps : lista delle presenze delle famiglie Ps[i]=0,1
+    ### Ns_old : lista dei nomi delle famiglie
+    ### Es_old : lista dell'energia dal fotovoltaico (fv)
+    ### kWh_old : lista dei consumi-surplus di ogni famiglia
+    ### Fs_old : lista dei consumi fissi (l'appartamento della famiglia i che è
+    ###          in vacanza consuma Fs[i])
+    ### costo : prezzo in €/kWh dell'energia
+    ## Dal documento
+    Ps, Ns_old, Es_old, kWh_old, Fs_old  = ParseData('condominio2.txt')
     print('Presenze: {}'.format(Ps))
     print('Nomi: {}'.format(Ns))
     print('Dal fotovoltaico: {}'.format(Fs))
     print('Surplus: {}'.format(kWh))
     print('Fisso: {}'.format(Fs))
-    ###
+    ## A mano
     # Ns = ['Bianchi','Rossi','Verdi','Smith','Otto','Nove']
     # kWh = [1,1,1,2,2,3] # consumo surplus
     # Ps = [1,1,0,1,0,1] # presenze
     # Fs = [0.5,0.5,0.5,0.5,1,1] # consumo fisso
     # Es = [0.8,0.8,0.8,0.9,1,1.5] # energia di base coperta dal fotovoltaico
-    costo = 0.277 # 0.277€/kWh
+    ##
+    costo = 0.277 
     
-    # kWh_new, RC = New(kWh, Fs, Es, Ps) # lista tc l'i-esima entrata ha il consumo surplus
-    #                         # dell'appartamento i-esimo
+    Ns_new, Es_new, kWh_new, Fs_new, RC = New(Ps, Ns_old, Es_old, kWh_old, Fs_old) 
+    l = len(Ns_new)
     
-    # ### SOLUZIONE
-    # perc_covered, kWh_covered = MMF(kWh_new, RC, costo) # lista tc l'i-esima entrata ha la percentuale  
-    #                        # della i-esima richiesta che rappresenta la copertura 
-    #                        # dal fotovoltaico
+    ### SOLUZIONE
+    perc_covered = MMF(kWh_new, RC) 
     
-    # ### PRINT
-    # # kWh_covered = list(map(lambda x,y: x[i]*y[i]/100, perc_covered, kWh_new))
-    # kWh_uncovered = list(map(lambda x,y: x-y , kWh_new, kWh_covered))
-    # costi = list(np.multiply( kWh_uncovered, costo))
-    # print('lung Ns: {}, lung kWh_covered: {}, lung costi: {}'.format(len(Ns), len(kWh_covered), len(costi)))
-    # for i in range(1,6):
-    #     print('Appartamento {}, kWh coperti: {}, Costo: {} \n'.format(Ns[i-1], kWh_covered[i-1], costi[i-1]))
+    ### PRINT
+    kWh_covered = list(map(lambda x,y: x[i]*y[i]/100, perc_covered, kWh_new))
+    kWh_uncovered = list(map(lambda x,y: x-y , kWh_new, kWh_covered))
+    costi = list(np.multiply( kWh_uncovered, costo))
+    print('lung Ns: {}, lung kWh_covered: {}, lung costi: {}'.format(len(Ns), len(kWh_covered), len(costi)))
+    for i in range(1,l+1):
+        print('Appartamento {}, kWh coperti: {}, Costo: {} \n'.format(Ns[i-1], kWh_covered[i-1], costi[i-1]))
