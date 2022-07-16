@@ -8,6 +8,6 @@ STUDIO:
 1. Calcolo la soluzione utilitaria: SYSTEM(U) = sup{e^T*u : u \in U}
 2. Calcolo la soluzione secondo lo schema dell'equità proporzionale S^{PF}: u^{PF}
 3. Calcolo la soluzione secondo lo schema dell'equità max-min S^{MMF}: u^{MMF}
-4. Calcolo la soluzione equa per i due schemi: FAIR(U;S^{PF})=(e^T)*(u^{PF}) e FAIR(U;S^{MMF})=(e^T)*(u^{MMF})
+4. Calcolo la soluzione equa per i due schemi: FAIR(U;S^{PF}) = (e^T) * (u^{PF}) e FAIR(U;S^{MMF}) = (e^T) * (u^{MMF})
 5. Calcolo il prezzo dell'equità (POF) nei due casi: POF(U;S) = {SYSTEM(U) - FAIR(U;S)}/{SYSTEM(U)}, dove S=S^{PF},S^{MMF}
 6. Dato che lo studio è svolto su un problema in cui ogni giocatore ha la stessa massima utilià raggiungibile, allora vale il teorema che ci garantisce dei limiti per POF(U;S^{PF}) e POF(U;S^{MMF})
