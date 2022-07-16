@@ -62,10 +62,6 @@ def MMF(Ks, RC):
     model.maxind = ConstraintList()            
     for i in model.N:
         model.maxind.add( expr = kWh_covered[i-1] <= Ks[i-1] )
-    # 3. ogni appartamento deve avere una porzione non nulla di surplus coperto
-    model.minind = ConstraintList()
-    for i in model.N:
-        model.minind.add( expr = model.u[i] > 0 )
     
     # Risoluzione con gurobi
     solver = SolverFactory('gurobi')
