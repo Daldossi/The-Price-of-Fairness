@@ -1,0 +1,114 @@
+\documentclass{beamer}
+%\usepackage[utf8]{inputenc}
+%\usepackage[T1]{fontenc}
+%\usepackage[italian]{babel}
+\usetheme{Berlin}
+\usefonttheme{serif}
+
+\newtheorem{hp}{Ipotesi}
+%\newenvironment<>{hp}[1][]{%
+	%	\setbeamercolor{Ipotesi}{fg=white,bg=red!75!black}%
+	%	\begin{example}#2[#1]}{\end{example}}
+\newtheorem{prop}{Proposizione}
+
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{url}
+\usepackage{hyperref}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Information to be included in the title page:
+\title{The Price of Fairness\\Applicazione}
+\author{Alice Daldossi}
+\institute{Università degli Studi di Pavia}
+\date
+
+\begin{document}
+	
+	\frame{\titlepage}
+	
+\begin{frame}
+	\frametitle{Indice}
+	\tableofcontents
+\end{frame}
+
+\section{Problema}
+
+\begin{frame}{Presentazione del problema}
+\begin{block}{Problema}
+	Un condominio da 6 appartamenti ha installato dei pannelli fotovoltaici che creano energia elettrica pari a 30 kWh al giorno. Questo totale viene normalmente suddiviso tra le 6 utenze in base alle quote di ciascuna. Se una famiglia va in vacanza, l'appartamento consuma meno, quindi c'è più energia a disposizione per le altre. Come distribuire questa energia in più?
+\end{block}
+\begin{block}{Risoluzione}
+	 Per ogni famiglia si cerca la proporzione del rispettivo surplus (energia che non viene normalmente coperta dai fotovoltaici) che è coperta dal fotovoltaico aggiuntivo.
+\end{block}
+\end{frame}
+
+\begin{frame}{Dati}
+	... Immagine del txt con le famiglie, i consumi, le presenze ...
+\end{frame}
+
+\begin{frame}{Soluzione utilitaria}
+	\begin{equation}
+		\begin{split}
+			\underset{y}{\text{max}} & \qquad e^T u, \\
+			\text{t.c.} & \qquad u \in U.
+		\end{split}
+	\end{equation}
+	\begin{block}{Soluzione}
+		\begin{equation}
+			\text{SYSTEM}(U) = \sup \{e^T u | u \in U\} = \text{valore dal codice}
+		\end{equation}
+	\end{block}
+\end{frame}
+
+\section{Schemi di equità}
+
+\begin{frame}{Equità proporzionale}
+	\begin{equation}
+		\begin{split}
+			\underset{y}{\text{max}} & \qquad \prod_{j=1}^n u_j \\
+			\text{t.c.} & \qquad u \in U.
+		\end{split}
+	\end{equation}
+	\begin{block}{Soluzione}
+		\vspace{-0.4cm}
+		\begin{equation}
+			\begin{split}
+				& \mathcal{S}^{\text{PF}}(U) = \\
+				& \text{FAIR}(U;\mathcal{S}^{\text{PF}}) = e^T \mathcal{S}^{\text{PF}}(U) = \\
+				& \text{POF}(U;\mathcal{S}^{\text{PF}}) = \frac{\text{SYSTEM}(U) - \text{FAIR}(U;\mathcal{S}^{\text{PF}})}{\text{SYSTEM}(U)}
+			\end{split}
+		\end{equation}
+	\vspace{-0.2cm}
+	\end{block}
+\end{frame}
+
+\begin{frame}{Equità max-min}
+	... Problema ...
+	\begin{block}{Soluzione}
+		\vspace{-0.4cm}
+		\begin{equation}
+			\begin{split}
+				& \mathcal{S}^{\text{MMF}}(U) = \\
+				& \text{FAIR}(U;\mathcal{S}^{\text{MMF}}) = e^T \mathcal{S}^{\text{MMF}}(U) = \\
+				& \text{POF}(U;\mathcal{S}^{\text{MMF}}) = \frac{\text{SYSTEM}(U) - \text{FAIR}(U;\mathcal{S}^{\text{MMF}})}{\text{SYSTEM}(U)}
+			\end{split}
+		\end{equation}
+		\vspace{-0.2cm}
+	\end{block}
+\end{frame}
+
+\begin{frame}{Limiti}
+	\begin{block}{Teorema: Uguali massime utilità possibili}
+		Abbiamo $ n = 6 > 2$ giocatori, $U \subset \mathbb{R}^6_+$ è compatto e convesso. Tutti i giocatori hanno la stessa massima utilità, che è maggiore di 0, allora
+		\begin{equation}
+			\begin{split}
+				& \text{POF}(U;\mathcal{S}^{\text{PF}}) \le 1 - \frac{2\sqrt{n}-1}{n} = 0.3501700857389407, \\ 
+				& \text{POF}(U;\mathcal{S}^{\text{MMF}}) \le 1 - \frac{4n}{(n+1)^2} = 0.5102040816326531. 
+			\end{split}
+		\end{equation}
+	\end{block}
+\end{frame}
+
+\end{document}
