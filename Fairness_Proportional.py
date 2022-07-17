@@ -34,6 +34,13 @@ def ParseData(filename):
         Es.append( int(line[7]) )
     return Ps, Ns, Es, Ss, Fs 
 
+def produttoria(q):
+    p = q[0] # elemento neutro della moltiplicazione
+    l = len(q)
+    for i in range(1,l):
+        p = p * q[i] # multiply
+    return p
+
 def New(Ps, Ns, Es, kWh, Fs):
     """
     Parameters
@@ -57,7 +64,7 @@ def New(Ps, Ns, Es, kWh, Fs):
     kWh_new = []
     Fs_new = []
     rc = 0
-    for i in range(1,n):
+    for i in range(1,n+1):
         if Ps[i-1] == 1: # se la fam è presente considero tutto
             Ns_new.append(Ns[i-1])
             Es_new.append(Es[i-1])
@@ -107,8 +114,8 @@ def PF(Ks, RC):
     model.u = Var(model.N, domain = NonNegativeReals)
 
     # Funzione obiettivo
-    ### ?Linearizzare la somma di logaritmi?
-    model.obj = Objective(expr = sum(np.log(model.u[i]) for i in model.N), 
+    ### ?Linearizzare la somma di logaritmi?list(maap())
+    model.obj = Objective(expr = sum((model.u[i]) for i in model.N), 
                           sense = maximize)
     
     # Vincoli
@@ -134,8 +141,6 @@ def PF(Ks, RC):
         return None    
     
     perc_covered = model.u
-    
-    # dict_gironi = {}
         
     return perc_covered
 
@@ -154,31 +159,39 @@ if __name__ == "__main__":
     ###          in vacanza consuma Fs[i])
     ### costo : prezzo in €/kWh dell'energia
     ## Dal documento
-    Ps, Ns_old, Es_old, kWh_old, Fs_old  = ParseData('condominio2.txt')
-    print('Presenze: {}'.format(Ps))
-    print('Nomi: {}'.format(Ns))
-    print('Dal fotovoltaico: {}'.format(Fs))
-    print('Surplus: {}'.format(kWh))
-    print('Fisso: {}'.format(Fs))
+    # Ps, Ns_old, Es_old, kWh_old, Fs_old  = ParseData('condominio2.txt')
     ## A mano
-    # Ns = ['Bianchi','Rossi','Verdi','Smith','Otto','Nove']
-    # kWh = [1,1,1,2,2,3] # consumo surplus
-    # Ps = [1,1,0,1,0,1] # presenze
-    # Fs = [0.5,0.5,0.5,0.5,1,1] # consumo fisso
-    # Es = [0.8,0.8,0.8,0.9,1,1.5] # energia di base coperta dal fotovoltaico
+    Ns_old = ['Bianchi','Rossi','Verdi','Longo','Costa','Gatti']
+    kWh_old = [1.452941176, 4.164705882, 1.970588235, 3.117647059, 3.529411765, 5.764705882] # consumo surplus
+    Ps = [1,1,1,0,0,1] # presenze
+    Fs_old = [1.5, 1.5, 1.5, 1.5, 2, 2] # consumo fisso
+    Es_old = [2.647058824, 3.235294118, 3.529411765, 5.882352941, 6.470588235, 8.235294118] # energia di base coperta dal fotovoltaico
+    print('DATI')
+    print('Presenze: {}'.format(Ps))
+    print('Nomi: {}'.format(Ns_old))
+    print('Dal fotovoltaico: {}'.format(Es_old))
+    print('Surplus: {}'.format(kWh_old))
+    print('Fisso: {} \n'.format(Fs_old))
     ##
     costo = 0.277 
     
     Ns_new, Es_new, kWh_new, Fs_new, RC = New(Ps, Ns_old, Es_old, kWh_old, Fs_old) 
     l = len(Ns_new)
+    print('TAGLIO')
+    print('Nomi: {}'.format(Ns_new))
+    print('Dal fotovoltaico: {}'.format(Es_new))
+    print('Surplus: {}'.format(kWh_new))
+    print('Fisso: {}'.format(Fs_new))
+    print('Nuova energia: {} \n'.format(RC))
     
     ### SOLUZIONE
     perc_covered = PF(kWh_new, RC) 
     
-    ### PRINT
-    kWh_covered = list(map(lambda x,y: x[i]*y[i]/100, perc_covered, kWh_new))
+    # ### PRINT
+    kWh_covered = list(map(lambda x,y: np.multiply(x,y)/100, perc_covered, kWh_new))
     kWh_uncovered = list(map(lambda x,y: x-y , kWh_new, kWh_covered))
-    costi = list(np.multiply( kWh_uncovered, costo))
-    print('lung Ns: {}, lung kWh_covered: {}, lung costi: {}'.format(len(Ns), len(kWh_covered), len(costi)))
+    costi = list(np.multiply(kWh_uncovered, costo))
+    print('SOLUZIONE')
+    # print('lung Ns: {}, lung kWh_covered: {}, lung costi: {}'.format(len(Ns_new), len(kWh_covered), len(costi)))
     for i in range(1,l+1):
-        print('Appartamento {}, kWh coperti: {}, Costo: {} \n'.format(Ns[i-1], kWh_covered[i-1], costi[i-1]))
+        print('Appartamento {}, kWh coperti: {}, Costo: {}'.format(Ns_new[i-1], kWh_covered[i-1], costi[i-1]))
