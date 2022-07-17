@@ -24,7 +24,7 @@ def ParseData(filename):
         Es.append( float(line[7]) )
     return Ps, Ns, Es, Ss, Fs 
 
-def New(Ps, Ns, Es, kWh, Fs):
+def New(Ps, Ns, Es, Ws, Fs):
     """
     Parameters
     ----------
@@ -44,14 +44,14 @@ def New(Ps, Ns, Es, kWh, Fs):
     n = len(Ps)
     Ns_new = []
     Es_new = []
-    kWh_new = []
+    Ws_new = []
     Fs_new = []
     rc = 0
     for i in range(1,n+1):
         if Ps[i-1] == 1: # se la fam è presente considero tutto
             Ns_new.append(Ns[i-1])
             Es_new.append(Es[i-1])
-            kWh_new.append(kWh[i-1])
+            Ws_new.append(Ws[i-1])
             Fs_new.append(Fs[i-1])
         else: # se la fam è assente
             diff = Es[i] - Fs[i] # energia scoperta dal FV
@@ -59,19 +59,31 @@ def New(Ps, Ns, Es, kWh, Fs):
                             # allora kWh != 0
                 Ns_new.append(Ns[i-1])
                 Es_new.append(Es[i-1])
-                kWh_new.append(-diff)
+                Ws_new.append(-diff)
                 Fs_new.append(Fs[i-1])
             else: # se il fotovoltaico copre il consumo fisso e avanza anche energia,
                   # allora quell'energia in più va in rc (a disposizione degli altri)
-                  rc += (Es[i] - Fs[i])
-    return Ns_new, Es_new, kWh_new, Fs_new,  rc
+                rc += (diff)
+    return Ns_new, Es_new, Ws_new, Fs_new,  rc
 
 def MMF(Ks, RC):
     """
-    max-min scheme
-    """    
+    Risolve il problema lineare
     
-    n = len(Ks) # numero dei dati (= numero di appartamenti)
+    Parameters
+    ----------
+    Ks : lista : lista di surplus (output di New)
+    prezzo: intero : prezzo dell'energia in €/kWh 
+    RC : intero : massima capacità a disposizione
+    
+    Returns
+    -------
+    Ds : lista : alla posizione i-esima c'è la percentuale sul surplus totale che viene
+        coperta dal fotovoltaico per l'appartamento i-esimo
+
+    """       
+    
+    n = len(Ks) # numero dei dati (= numero di appartamenti che hanno un surplus))
 
     # Build ILP Model
     model = ConcreteModel()
@@ -80,24 +92,32 @@ def MMF(Ks, RC):
     model.N = RangeSet(n)
 
     # Variabili
+    # model.u[i] è la percentuale di surplus della famiglia i-esima che viene 
+    # coperta dal fv
     model.u = Var(model.N, domain = NonNegativeReals)
 
     # Funzione obiettivo
-    ### ?Devo massimizzare lessicograficamente?
+    ### ?Devo massimizzare lessicograficamente? 
+    ### Multiple Objectives: use n=6 objectives with a lexicographic approach:
+    ### 1. massimizzo la percentuale che possono avere tutti,
+    ### 2. massimizzo la percentuale che hanno tutti tranne uno,
+    ### 3. ... così via
+    ### 6. massimizzo la percentuale che ha una sola famiglia,
+    ### Allo step k-esimo non posso abbassare il valore dei precedenti k-1 step.
     model.obj = Objective(expr = sum((model.u[i]) for i in model.N), 
                           sense = maximize)
     
     # Vincoli
-    kWh_covered = []       
+    Ws = []       
     for i in model.N:
-        kWh_covered.append( Ks[i-1]*model.u[i]/100) # kWh coperti dal fotovoltaico
+        Ws.append( Ks[i-1]*model.u[i]/100) # kWh coperti dal fotovoltaico
     # 1. massima disponiiblità totale della risorsa
     model.maxtot = ConstraintList()   
-    model.maxtot.add( expr = sum(kWh_covered) <= RC )
+    model.maxtot.add( expr = sum(Ws) <= RC )
     # 2. massima copertura individuale della risorsa
     model.maxind = ConstraintList()            
     for i in model.N:
-        model.maxind.add( expr = kWh_covered[i-1] <= Ks[i-1] )
+        model.maxind.add( expr = Ws[i-1] <= Ks[i-1] )
     
     # Risoluzione con gurobi
     solver = SolverFactory('gurobi')
@@ -109,7 +129,7 @@ def MMF(Ks, RC):
     if sol_json['Solver'][0]['Status'] != 'ok':
         return None    
     
-    perc_covered = model.u
+    perc_covered = [model.u[j]() for j in model.N]
         
     return perc_covered
 
@@ -156,7 +176,7 @@ if __name__ == "__main__":
     ### SOLUZIONE
     perc_covered = MMF(kWh_new, RC) 
     
-    # ### PRINT
+    ### PRINT
     kWh_covered = list(map(lambda x,y: np.multiply(x,y)/100, perc_covered, kWh_new))
     kWh_uncovered = list(map(lambda x,y: x-y , kWh_new, kWh_covered))
     costi = list(np.multiply(kWh_uncovered, costo))

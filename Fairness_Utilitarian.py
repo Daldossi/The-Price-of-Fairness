@@ -123,9 +123,7 @@ def UTI(Ks, RC):
         return None    
     
     perc_covered = [model.u[j]() for j in model.N]
-    
-    # dict_gironi = {}
-        
+            
     return perc_covered
 
 
@@ -136,20 +134,20 @@ if __name__ == "__main__":
     
     ### DATI
     ### Ps : lista delle presenze delle famiglie Ps[i]=0,1
-    ### Ns_old : lista dei nomi delle famiglie
-    ### Es_old : lista dell'energia dal fotovoltaico (fv)
-    ### kWh_old : lista dei consumi-surplus di ogni famiglia
-    ### Fs_old : lista dei consumi fissi (l'appartamento della famiglia i che è
+    ### Ns : lista dei nomi delle famiglie
+    ### Es : lista dell'energia dal fotovoltaico (fv)
+    ### kWh : lista dei consumi-surplus di ogni famiglia
+    ### Fs : lista dei consumi fissi (l'appartamento della famiglia i che è
     ###          in vacanza consuma Fs[i])
     ### costo : prezzo in €/kWh dell'energia
     ## Dal documento
     # Ps, Ns_old, Es_old, kWh_old, Fs_old  = ParseData('condominio2.txt')
     ## A mano
     Ns_old = ['Bianchi','Rossi','Verdi','Longo','Costa','Gatti']
-    kWh_old = [1.452941176, 4.164705882, 1.970588235, 3.117647059, 3.529411765, 5.764705882] # consumo surplus
-    Ps = [1,1,1,0,0,1] # presenze
-    Fs_old = [1.5, 1.5, 1.5, 1.5, 2, 2] # consumo fisso
-    Es_old = [2.647058824, 3.235294118, 3.529411765, 5.882352941, 6.470588235, 8.235294118] # energia di base coperta dal fotovoltaico
+    kWh_old = [1.452941176, 4.164705882, 1.970588235, 3.117647059, 3.529411765, 5.764705882]
+    Ps = [1,1,1,0,0,1]
+    Fs_old = [1.5, 1.5, 1.5, 1.5, 2, 2]
+    Es_old = [2.647058824, 3.235294118, 3.529411765, 5.882352941, 6.470588235, 8.235294118]
     print('DATI')
     print('Presenze: {}'.format(Ps))
     print('Nomi: {}'.format(Ns_old))
@@ -158,7 +156,7 @@ if __name__ == "__main__":
     print('Fisso: {} \n'.format(Fs_old))
     ##
     costo = 0.277 
-    
+    ##
     Ns_new, Es_new, kWh_new, Fs_new, RC = New(Ps, Ns_old, Es_old, kWh_old, Fs_old) 
     l = len(Ns_new)
     print('TAGLIO')

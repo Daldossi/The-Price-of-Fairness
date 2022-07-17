@@ -8,16 +8,6 @@ from pyomo.environ import *
 import numpy as np
 
 # Parse the training set
-# def ParseData(filename):
-#     fh = open(filename, 'r', encoding="utf-8")
-#     Xs = []
-#     Ys = []
-#     for line in fh:
-#         row = line.split('\t')        
-#         Xs.append( list(map(float, row[:-1])) )
-#         Ys.append( int(row[-1]) )
-#     return Xs, Ys  
-
 def ParseData(filename):
     doc = open(filename, 'r', encoding="utf-8")
     Ps = [] # presenze
@@ -114,21 +104,22 @@ def PF(Ks, RC):
     model.u = Var(model.N, domain = NonNegativeReals)
 
     # Funzione obiettivo
-    ### ?Linearizzare la somma di logaritmi?list(maap())
+    ### ?Linearizzare la somma di logaritmi? 
+    ### Introduco un'altra variabile
     model.obj = Objective(expr = sum((model.u[i]) for i in model.N), 
                           sense = maximize)
     
     # Vincoli
-    kWh_covered = []       
+    Ws = []       
     for i in model.N:
-        kWh_covered.append( Ks[i-1]*model.u[i]/100) # kWh coperti dal fotovoltaico
-    # 1. massima disponiiblità totale della risorsa
+        Ws.append( Ks[i-1]*model.u[i]/100) # kWh coperti dal fotovoltaico
+    # 1. massima disponiblità totale della risorsa
     model.maxtot = ConstraintList()   
-    model.maxtot.add( expr = sum(kWh_covered) <= RC )
+    model.maxtot.add( expr = sum(Ws) <= RC )
     # 2. massima copertura individuale della risorsa
     model.maxind = ConstraintList()            
     for i in model.N:
-        model.maxind.add( expr = kWh_covered[i-1] <= Ks[i-1] )
+        model.maxind.add( expr = Ws[i-1] <= Ks[i-1] )
     
     # Risoluzione con gurobi
     solver = SolverFactory('gurobi')
@@ -140,7 +131,7 @@ def PF(Ks, RC):
     if sol_json['Solver'][0]['Status'] != 'ok':
         return None    
     
-    perc_covered = model.u
+    perc_covered = [model.u[j]() for j in model.N]
         
     return perc_covered
 
@@ -187,7 +178,7 @@ if __name__ == "__main__":
     ### SOLUZIONE
     perc_covered = PF(kWh_new, RC) 
     
-    # ### PRINT
+    ### PRINT
     kWh_covered = list(map(lambda x,y: np.multiply(x,y)/100, perc_covered, kWh_new))
     kWh_uncovered = list(map(lambda x,y: x-y , kWh_new, kWh_covered))
     costi = list(np.multiply(kWh_uncovered, costo))
