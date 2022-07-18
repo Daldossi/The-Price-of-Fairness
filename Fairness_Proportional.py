@@ -104,7 +104,7 @@ def PF(Ks, RC):
     model.u = Var(model.N, domain = NonNegativeReals)
 
     # Funzione obiettivo
-    ### ?Linearizzare la somma di logaritmi? 
+    ### ?Linearizzare la somma di logaritmi o il prodotto di model.u[i]?
     ### Introduco un'altra variabile
     model.obj = Objective(expr = sum((model.u[i]) for i in model.N), 
                           sense = maximize)
