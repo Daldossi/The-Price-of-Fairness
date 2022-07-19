@@ -107,6 +107,7 @@ def MMF(Ks, RC):
     ### 6. massimizzo la percentuale che ha una sola famiglia,
     ### Allo step k-esimo non posso abbassare il valore dei precedenti k-1 step.
     ### Ogni volta cambio la funzione obiettivo, tenendo le precedenti come vincoli
+    ### Duale
     model.obj = Objective(expr = sum(model.u[i] for i in model.N), 
                           sense = maximize)
     
