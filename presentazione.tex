@@ -36,7 +36,12 @@
 \section{Formulazione del problema}
 
 \begin{frame}{Formulazione del problema}
-	Si consideri un problema di allocazione di risorse con $n$ giocatori e un decisore centrale (CDM) che conosce tutte le preferenze e ha completo controllo nell'assegnazione dell'allocazione. 
+	\begin{exampleblock}{Problema}
+		Si consideri un problema di allocazione di risorse con $n$ giocatori e un decisore centrale (CDM) che conosce tutte le preferenze e ha completo controllo nell'assegnazione dell'allocazione. 
+	\end{exampleblock}
+\end{frame}
+
+\begin{frame}
 	\begin{block}{Notazione}
 		\begin{itemize}
 			\item Sia $X \subset \mathbb{R}^n$ l'insieme delle allocazioni delle risorse $x \in X$  che comprende tutti i vincoli per le allocazioni.\\
@@ -47,10 +52,11 @@
 			\vspace{-0.3cm}
 			\begin{equation*}
 				U = \{ u \in \mathbb{R}^n_+ | \exists x \in X: f_j(x) = u_j, \ \forall j=1,\dots,n \}.
+				\vspace{-0.3cm}
 			\end{equation*}
 			% cioè l'insieme di tutte le allocazioni (o distribuzioni) di utilità possibili
+			\item Sia $u_j^\star$ la massima utilità raggiungibile dal $j$-esimo giocatore, cioè $u_j^\star = \sup\{ u_j | u \in U \}$.
 		\end{itemize}
-		\vspace{-0.4cm}
 	\end{block}
 \end{frame}
 
@@ -102,16 +108,9 @@
 
 \section{Schemi di equità}
 
-\begin{frame}{Rappresentazioni di equità}
-	Di seguito sono presentati gli assiomi più studiati che una rappresentazione equa deve idealmente soddisfare nel caso di un problema a due giocatori, $n=2$.
-	 \begin{block}{Notazione}
-	 	Si denota con:
-	 	\begin{itemize}
-	 		\item $U$ l'insieme delle utilità;
-	 		\item $u_j^\star$ la massima utilità raggiungibile dal $j$-esimo giocatore, cioè $u_j^\star = \sup\{ u_j | u \in U \}$.
-	 	\end{itemize}
-	 \end{block}
-\end{frame}
+%\begin{frame}{Rappresentazioni di equità}
+%	Di seguito sono presentati gli assiomi più studiati che una rappresentazione equa deve idealmente soddisfare nel caso di un problema a due giocatori, $n=2$.
+%\end{frame}
 
 \begin{frame}
 	\begin{exampleblock}{Assioma 1: Pareto ottimalità} \label{ax1}
@@ -155,9 +154,9 @@
 \end{frame}
 
 \begin{frame}
-	\begin{alertblock}{}
-		Il risultato più importante afferma che non esiste uno schema di equità che soddisfa tutti e 5 gli assiomi. 
-	\end{alertblock}
+	\begin{exampleblock}{}
+		Non esiste uno schema di equità che soddisfa tutti e 5 gli assiomi. 
+	\end{exampleblock}
 \end{frame}
 
 \subsection{Equità proporzionale}
