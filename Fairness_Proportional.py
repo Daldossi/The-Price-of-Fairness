@@ -33,19 +33,21 @@ def produttoria(q):
 
 def New(Ps, Ns, Es, kWh, Fs):
     """
+    Crea liste con i dati delle sole famiglie presenti
+    
     Parameters
     ----------
     Ps : lista : ogni entrata è binaria (1 se la fam è presente, 0 altrimenti)
     Ns : lista : ogni entrata è il nome della famiglia
-    Es : lista : alla posizione i-esima ha la quantità di energia fornita dal FV alla fam i-esima
+    Es : lista : alla posizione i-esima ha la quantità di energia fornita dal fotovoltaico alla fam i-esima
     Fs : lista : alla posizione i-esima ha il consumo fisso dell'appartamento i-esimo
 
     Returns
     -------
-    Ns_new, Es_new, kWh_new, Fs_new : liste precedenti senza le famiglie in
-        vacanza che hanno il consumo fisso completamente coperto dall'energia 
-        che gli viene fornita dal FV normalmente
-    RC : reale non negativo : totale nuova capacità a disposizione 
+    Ns_new, Es_new, kWh_new, Fs_new : liste precedenti senza le famiglie che sono in
+        vacanza e che hanno il consumo fisso completamente coperto dall'energia 
+        che gli viene fornita dal fotovoltaico normalmente
+    RC : reale non negativo : totale nuova capacità a disposizione dal fotovoltaico
     
     """
     n = len(Ps)
@@ -80,12 +82,11 @@ def PF(Ks, RC):
     Parameters
     ----------
     Ks : lista : lista di surplus (output di New)
-    prezzo: intero : prezzo dell'energia in €/kWh 
     RC : intero : massima capacità a disposizione
     
     Returns
     -------
-    Ds : lista : alla posizione i-esima c'è la percentuale sul surplus totale che viene
+    Ds : lista : alla posizione i-esima c'è la percentuale sul surplus dell'appartamento che viene
         coperta dal fotovoltaico per l'appartamento i-esimo
 
     """    
@@ -105,8 +106,8 @@ def PF(Ks, RC):
 
     # Funzione obiettivo
     ### ?Linearizzare la somma di logaritmi o il prodotto di model.u[i]?
-    ### Introduco un'altra variabile
-    model.obj = Objective(expr = sum((model.u[i]) for i in model.N), 
+    ### Introduco un'altra variabile: 
+    model.obj = Objective(expr = sum(np.log(model.u[i]) for i in model.N), 
                           sense = maximize)
     
     # Vincoli
