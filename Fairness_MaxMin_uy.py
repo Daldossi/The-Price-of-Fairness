@@ -27,6 +27,8 @@ def ParseData(filename):
 
 def New(Ps, Ns, Es, Ws, Fs):
     """
+    Crea liste dei dati delle famiglie che hanno surplus non nullo
+    
     Parameters
     ----------
     Ps : lista : ogni entrata è binaria (1 se la fam è presente, 0 altrimenti)
@@ -106,6 +108,10 @@ def MMF(Ks, RC):
     # for i in model.N:
     #     model.funob.add( (sum(model.y[i,j]*model.u[i] for j in model.N)), i-1, n-i)
     # model.ModelSense = GRB.MAXIMIZE
+    ##
+    # IDEA: massimizzare la percentuale della prima riga, poi quella della seconda e così via fino all'ultima;
+    # a ogni step (ogni riga i di y), rispetto allo step precendete, ha almeno una famiglia in più (un valore di y[i,j]) 
+    # che ha una percentuale nulla (cioè non viene aumentata la sua porzione che verrà coperta).
     model.setObjectiveN((sum(model.y[1,j]*model.u[1] for j in model.N)), 0, 4)
     model.setObjectiveN((sum(model.y[2,j]*model.u[2] for j in model.N)), 1, 3)
     model.setObjectiveN((sum(model.y[3,j]*model.u[3] for j in model.N)), 2, 2)
@@ -119,6 +125,7 @@ def MMF(Ks, RC):
     model.maxtot = ConstraintList()   
     model.maxtot.add( expr = sum(Ws) <= RC )
     # 2. massima copertura individuale della risorsa
+    # [Infatti, se avanza energia del fotovoltaico, questa viene rimessa in circolo e venduta a Enel]
     model.maxind = ConstraintList()            
     for i in model.N:
         model.maxind.add( expr = Ws[i-1] <= Ks[i-1] )
