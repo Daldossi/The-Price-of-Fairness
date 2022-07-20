@@ -24,56 +24,44 @@ def ParseData(filename):
         Es.append( int(line[7]) )
     return Ps, Ns, Es, Ss, Fs 
 
-def produttoria(q):
-    p = q[0] # elemento neutro della moltiplicazione
-    l = len(q)
-    for i in range(1,l):
-        p = p * q[i] # multiply
-    return p
-
 def New(Ps, Ns, Es, kWh, Fs):
     """
-    Crea liste con i dati delle sole famiglie presenti
-    
     Parameters
     ----------
     Ps : lista : ogni entrata è binaria (1 se la fam è presente, 0 altrimenti)
     Ns : lista : ogni entrata è il nome della famiglia
-    Es : lista : alla posizione i-esima ha la quantità di energia fornita dal fotovoltaico alla fam i-esima
+    Es : lista : alla posizione i-esima ha la quantità di energia fornita dal FV alla fam i-esima
     Fs : lista : alla posizione i-esima ha il consumo fisso dell'appartamento i-esimo
 
     Returns
     -------
-    Ns_new, Es_new, kWh_new, Fs_new : liste precedenti senza le famiglie che sono in
-        vacanza e che hanno il consumo fisso completamente coperto dall'energia 
-        che gli viene fornita dal fotovoltaico normalmente
-    RC : reale non negativo : totale nuova capacità a disposizione dal fotovoltaico
+    Ns_new, Es_new, kWh_new, Fs_new : liste precedenti senza le famiglie in
+        vacanza che hanno il consumo fisso completamente coperto dall'energia 
+        che gli viene fornita dal FV normalmente
+    RC : reale non negativo : totale nuova capacità a disposizione 
     
     """
     n = len(Ps)
     Ns_new = []
     Es_new = []
     kWh_new = []
-    Fs_new = []
     rc = 0
-    for i in range(1,n+1):
-        if Ps[i-1] == 1: # se la fam è presente considero tutto
-            Ns_new.append(Ns[i-1])
-            Es_new.append(Es[i-1])
-            kWh_new.append(kWh[i-1])
-            Fs_new.append(Fs[i-1])
+    for i in range(0,n):
+        if Ps[i] == 1: # se la fam è presente considero tutto
+            Ns_new.append(Ns[i])
+            Es_new.append(Es[i])
+            kWh_new.append(kWh[i])
         else: # se la fam è assente
             diff = Es[i] - Fs[i] # energia scoperta dal FV
             if (diff) <= 0: # se il fotovoltaico non copre il consumo fisso, 
                             # allora kWh != 0
-                Ns_new.append(Ns[i-1])
-                Es_new.append(Es[i-1])
+                Ns_new.append(Ns[i])
+                Es_new.append(Es[i])
                 kWh_new.append(-diff)
-                Fs_new.append(Fs[i-1])
             else: # se il fotovoltaico copre il consumo fisso e avanza anche energia,
                   # allora quell'energia in più va in rc (a disposizione degli altri)
-                rc += (diff)
-    return Ns_new, Es_new, kWh_new, Fs_new,  rc
+                  rc += (Es[i] - Fs[i])
+    return Ns_new, Es_new, kWh_new, rc
 
 def PF(Ks, RC):
     """
@@ -107,7 +95,7 @@ def PF(Ks, RC):
     # Funzione obiettivo
     ### ?Linearizzare la somma di logaritmi o il prodotto di model.u[i]?
     ### Introduco un'altra variabile: 
-    model.obj = Objective(expr = sum(np.log(model.u[i]) for i in model.N), 
+    model.obj = Objective(expr = sum(model.u[i] for i in model.N), 
                           sense = maximize)
     
     # Vincoli
@@ -118,6 +106,7 @@ def PF(Ks, RC):
     model.maxtot = ConstraintList()   
     model.maxtot.add( expr = sum(Ws) <= RC )
     # 2. massima copertura individuale della risorsa
+    # [Infatti, se avanza energia del fotovoltaico, questa viene rimessa in circolo e venduta a Enel]
     model.maxind = ConstraintList()            
     for i in model.N:
         model.maxind.add( expr = Ws[i-1] <= Ks[i-1] )
@@ -144,36 +133,35 @@ if __name__ == "__main__":
     
     ### DATI
     ### Ps : lista delle presenze delle famiglie Ps[i]=0,1
-    ### Ns_old : lista dei nomi delle famiglie
-    ### Es_old : lista dell'energia dal fotovoltaico (fv)
-    ### kWh_old : lista dei consumi-surplus di ogni famiglia
-    ### Fs_old : lista dei consumi fissi (l'appartamento della famiglia i che è
+    ### Ns : lista dei nomi delle famiglie
+    ### Es : lista dell'energia dal fotovoltaico (fv)
+    ### kWh : lista dei consumi-surplus di ogni famiglia
+    ### Fs : lista dei consumi fissi (l'appartamento della famiglia i che è
     ###          in vacanza consuma Fs[i])
     ### costo : prezzo in €/kWh dell'energia
     ## Dal documento
     # Ps, Ns_old, Es_old, kWh_old, Fs_old  = ParseData('condominio2.txt')
     ## A mano
     Ns_old = ['Bianchi','Rossi','Verdi','Longo','Costa','Gatti']
-    kWh_old = [1.452941176, 4.164705882, 1.970588235, 3.117647059, 3.529411765, 5.764705882] # consumo surplus
-    Ps = [1,1,1,0,0,1] # presenze
-    Fs_old = [1.5, 1.5, 1.5, 1.5, 2, 2] # consumo fisso
-    Es_old = [2.647058824, 3.235294118, 3.529411765, 5.882352941, 6.470588235, 8.235294118] # energia di base coperta dal fotovoltaico
+    kWh_old = [1.452941176, 4.164705882, 1.970588235, 3.117647059, 3.529411765, 5.764705882]
+    Ps = [1,1,1,0,0,1]
+    Fs = [1.5, 1.5, 1.5, 1.5, 2, 2]
+    Es_old = [2.647058824, 3.235294118, 3.529411765, 5.882352941, 6.470588235, 8.235294118]
     print('DATI')
     print('Presenze: {}'.format(Ps))
     print('Nomi: {}'.format(Ns_old))
     print('Dal fotovoltaico: {}'.format(Es_old))
     print('Surplus: {}'.format(kWh_old))
-    print('Fisso: {} \n'.format(Fs_old))
+    print('Fisso: {} \n'.format(Fs))
     ##
     costo = 0.277 
-    
-    Ns_new, Es_new, kWh_new, Fs_new, RC = New(Ps, Ns_old, Es_old, kWh_old, Fs_old) 
+    ##
+    Ns_new, Es_new, kWh_new, RC = New(Ps, Ns_old, Es_old, kWh_old, Fs) 
     l = len(Ns_new)
     print('TAGLIO')
     print('Nomi: {}'.format(Ns_new))
     print('Dal fotovoltaico: {}'.format(Es_new))
     print('Surplus: {}'.format(kWh_new))
-    print('Fisso: {}'.format(Fs_new))
     print('Nuova energia: {} \n'.format(RC))
     
     ### SOLUZIONE
@@ -187,3 +175,7 @@ if __name__ == "__main__":
     # print('lung Ns: {}, lung kWh_covered: {}, lung costi: {}'.format(len(Ns_new), len(kWh_covered), len(costi)))
     for i in range(1,l+1):
         print('Appartamento {}, kWh coperti: {}, Costo: {}'.format(Ns_new[i-1], kWh_covered[i-1], costi[i-1]))
+
+    ### POF
+    FAIR = sum(perc_covered)
+    print('FAIR: {}'.format(FAIR))

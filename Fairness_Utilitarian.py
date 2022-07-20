@@ -7,7 +7,6 @@ la soluzione utilitaria del problema di allocazione delle risorse
 from pyomo.environ import *
 import numpy as np
 
-# Parse the training set
 def ParseData(filename):
     doc = open(filename, 'r', encoding="utf-8")
     Ps = [] # presenze
@@ -45,31 +44,28 @@ def New(Ps, Ns, Es, kWh, Fs):
     Ns_new = []
     Es_new = []
     kWh_new = []
-    Fs_new = []
     rc = 0
-    for i in range(1,n+1):
-        if Ps[i-1] == 1: # se la fam è presente considero tutto
-            Ns_new.append(Ns[i-1])
-            Es_new.append(Es[i-1])
-            kWh_new.append(kWh[i-1])
-            Fs_new.append(Fs[i-1])
+    for i in range(0,n):
+        if Ps[i] == 1: # se la fam è presente considero tutto
+            Ns_new.append(Ns[i])
+            Es_new.append(Es[i])
+            kWh_new.append(kWh[i])
         else: # se la fam è assente
             diff = Es[i] - Fs[i] # energia scoperta dal FV
             if (diff) <= 0: # se il fotovoltaico non copre il consumo fisso, 
                             # allora kWh != 0
-                Ns_new.append(Ns[i-1])
-                Es_new.append(Es[i-1])
+                Ns_new.append(Ns[i])
+                Es_new.append(Es[i])
                 kWh_new.append(-diff)
-                Fs_new.append(Fs[i-1])
             else: # se il fotovoltaico copre il consumo fisso e avanza anche energia,
                   # allora quell'energia in più va in rc (a disposizione degli altri)
                   rc += (Es[i] - Fs[i])
-    return Ns_new, Es_new, kWh_new, Fs_new,  rc
+    return Ns_new, Es_new, kWh_new, rc
 
 def UTI(Ks, RC):
     """
     Risolve il problema lineare
-    
+    ---------------------------
     Parameters
     ----------
     Ks : lista : lista di surplus (output di New)
@@ -79,7 +75,6 @@ def UTI(Ks, RC):
     -------
     Ds : lista : alla posizione i-esima c'è la percentuale sul surplus totale che viene
         coperta dal fotovoltaico per l'appartamento i-esimo
-
     """    
     
     n = len(Ks) # numero dei dati (= numero appartamenti che hanno un surplus)
@@ -107,6 +102,7 @@ def UTI(Ks, RC):
     model.maxtot = ConstraintList()   
     model.maxtot.add( expr = sum(kWh_covered) <= RC )
     # 2. massima copertura individuale della risorsa
+    # [Infatti, se avanza energia del fotovoltaico, questa viene rimessa in circolo e venduta a Enel]
     model.maxind = ConstraintList()            
     for i in model.N:
         model.maxind.add( expr = kWh_covered[i-1] <= Ks[i-1] )
@@ -145,24 +141,23 @@ if __name__ == "__main__":
     Ns_old = ['Bianchi','Rossi','Verdi','Longo','Costa','Gatti']
     kWh_old = [1.452941176, 4.164705882, 1.970588235, 3.117647059, 3.529411765, 5.764705882]
     Ps = [1,1,1,0,0,1]
-    Fs_old = [1.5, 1.5, 1.5, 1.5, 2, 2]
+    Fs = [1.5, 1.5, 1.5, 1.5, 2, 2]
     Es_old = [2.647058824, 3.235294118, 3.529411765, 5.882352941, 6.470588235, 8.235294118]
     print('DATI')
     print('Presenze: {}'.format(Ps))
     print('Nomi: {}'.format(Ns_old))
     print('Dal fotovoltaico: {}'.format(Es_old))
     print('Surplus: {}'.format(kWh_old))
-    print('Fisso: {} \n'.format(Fs_old))
+    print('Fisso: {} \n'.format(Fs))
     ##
     costo = 0.277 
     ##
-    Ns_new, Es_new, kWh_new, Fs_new, RC = New(Ps, Ns_old, Es_old, kWh_old, Fs_old) 
+    Ns_new, Es_new, kWh_new, RC = New(Ps, Ns_old, Es_old, kWh_old, Fs) 
     l = len(Ns_new)
     print('TAGLIO')
     print('Nomi: {}'.format(Ns_new))
     print('Dal fotovoltaico: {}'.format(Es_new))
     print('Surplus: {}'.format(kWh_new))
-    print('Fisso: {}'.format(Fs_new))
     print('Nuova energia: {} \n'.format(RC))
     
     ### SOLUZIONE
@@ -175,4 +170,8 @@ if __name__ == "__main__":
     print('SOLUZIONE')
     # print('lung Ns: {}, lung kWh_covered: {}, lung costi: {}'.format(len(Ns_new), len(kWh_covered), len(costi)))
     for i in range(1,l+1):
-        print('Appartamento {}, kWh coperti: {}, Costo: {}'.format(Ns_new[i-1], kWh_covered[i-1], costi[i-1]))
+        print('Appartamento {}, perc: {}, kWh coperti: {}, Costo: {}'.format(Ns_new[i-1], perc_covered[i-1], kWh_covered[i-1], costi[i-1]))
+        
+    ### SYSTEM
+    SYSTEM = sum(perc_covered)
+    print('SYSTEM: {}'.format(SYSTEM))
