@@ -1,0 +1,408 @@
+\documentclass{beamer}
+%\usepackage[utf8]{inputenc}
+%\usepackage[T1]{fontenc}
+%\usepackage[italian]{babel}
+\usetheme{Berlin}
+\usefonttheme{serif}
+
+\newtheorem{hp}{Ipotesi}
+%\newenvironment<>{hp}[1][]{%
+	%	\setbeamercolor{Ipotesi}{fg=white,bg=red!75!black}%
+	%	\begin{example}#2[#1]}{\end{example}}
+\newtheorem{prop}{Proposizione}
+
+\usepackage{amsmath}
+\usepackage{eurosym}
+\usepackage{mathtools}
+\usepackage{url}
+\usepackage{hyperref}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Information to be included in the title page:
+\title{The Price of Fairness}
+\author{Alice Daldossi}
+\institute{Università degli Studi di Pavia}
+\date
+
+\begin{document}
+	
+	\frame{\titlepage}
+	
+	\begin{frame}
+		\frametitle{Indice}
+		\tableofcontents
+	\end{frame}
+	
+	\section{Formulazione del problema}
+	
+	\begin{frame}{Formulazione del problema}
+		\begin{exampleblock}{Problema}
+			Si consideri un problema di allocazione di risorse con $n$ giocatori e un decisore centrale (CDM) che conosce tutte le preferenze e ha completo controllo nell'assegnazione dell'allocazione. 
+		\end{exampleblock}
+	\end{frame}
+	
+	\begin{frame}
+		\begin{block}{Notazione}
+			\begin{itemize}
+				\item Sia $X \subset \mathbb{R}^n$ l'insieme delle allocazioni delle risorse $x \in X$  che comprende tutti i vincoli per le allocazioni.\\
+				\item Ogni giocatore ha una preferenza tra le allocazioni che è espressa dalla propria funzione di utilità $f_j: X \rightarrow \mathbb{R}_+, \ \forall j=1,\dots,n.$
+				% f_j mappa una possibile allocazoine in un livelol di utilità
+				Quindi, scelta l'allocazione $x \in X$, l'utilità del $j$-esimo giocatore è $f_j(x)$.\\
+				\item Sia $U$ l'insieme delle utilità: 
+				\vspace{-0.3cm}
+				\begin{equation*}
+					U = \{ u \in \mathbb{R}^n_+ | \exists x \in X: f_j(x) = u_j, \ \forall j=1,\dots,n \}.
+					\vspace{-0.3cm}
+				\end{equation*}
+				% cioè l'insieme di tutte le allocazioni (o distribuzioni) di utilità possibili
+				\item Sia $u_j^\star$ la massima utilità raggiungibile dal $j$-esimo giocatore, cioè $u_j^\star = \sup\{ u_j | u \in U \}$.
+			\end{itemize}
+		\end{block}
+	\end{frame}
+	
+	\begin{frame}{Soluzione utilitaria}
+		Secondo il classico principio utilitaristico, il CDM sceglie l'allocazione risolvendo il seguente problema:
+		% massimizzando la somma delle utilità dei giocatori
+		\begin{equation}
+			\begin{split}
+				\underset{y}{\text{max}} & \qquad e^T u, \\
+				\text{t.c.} & \qquad u \in U.
+			\end{split}
+		\end{equation}
+		Il valore ottimo di questo problema è:
+		\begin{equation}
+			\text{SYSTEM}(U) = \sup \{e^T u | u \in U\},
+		\end{equation}
+		e l'allocazione risultante è la \textbf{soluzione utilitaria}.
+	\end{frame}
+	
+	\begin{frame}
+		\begin{block}{Pro e contro}
+			\textit{Pro}: la soluzione utilitaria è adatta nelle situazioni in cui la somma delle utilità corrisponde a una misura dell'efficienza del sistema.\\
+			\textit{Contro}: la somma delle utilità non considera potenziali disuguaglianze nella distribuzione di utilità tra i giocatori.
+		\end{block}
+		L'allocazione deve essere scelta tale che rispetti uno schema di equità definito a partire dalla natura del problema e all'idea di \textit{equità} del CDM.
+	\end{frame}
+	
+	\begin{frame}
+		\begin{block}{Notazione}
+			\begin{itemize}
+				\item Uno \textbf{schema di equità} è un insieme di regole e una corrispettiva funzione $\mathcal{S}: 2^{\mathbb{R}^{n}_{+}} \rightarrow \mathbb{R}^{n}_{+}$. Quindi, dato un insieme di utilità $U$, $\mathcal{S}(U) \in U$ è un'allocazione che rispetta l'insieme di regole scelto.\\
+				\item Definiamo $\text{FAIR}(U; \mathcal{S})$:
+				\vspace{-0.3cm}
+				\begin{equation}
+					\text{FAIR}(U; \mathcal{S}) = e^T \mathcal{S}(U).
+					\vspace{-0.3cm}
+				\end{equation}
+				% cioè, come la somma delle utilità all'interno delle allocazioni eque stabilite rispettando lo schema di equità $\mathcal{S}$, cioè
+				\item Definiamo il \textbf{prezzo dell'equità} ($\text{\textbf{POF}}$), $\text{POF}(U; \mathcal{S})$, per il problema con l'insieme delle utilità $U$ e lo schema di equità $\mathcal{S}$, come segue:
+				%		la relativa riduzione nella somma delle utilità secondo l'equa soluzione $\mathcal{S}(U)$ comparata con la soluzione utilitaria:
+				\vspace{-0.3cm}
+				\begin{equation}
+					\text{POF}(U;\mathcal{S}(U)) = \frac{\text{SYSTEM}(U) - \text{FAIR}(U;\mathcal{S})}{\text{SYSTEM}(U)}.
+				\end{equation}
+			\end{itemize}
+			\vspace{-0.2cm}
+		\end{block}
+	\end{frame}
+	
+	\section{Schemi di equità}
+	
+	%\begin{frame}{Rappresentazioni di equità}
+	%	Di seguito sono presentati gli assiomi più studiati che una rappresentazione equa deve idealmente soddisfare nel caso di un problema a due giocatori, $n=2$.
+	%\end{frame}
+	
+	\begin{frame}
+		\begin{exampleblock}{Assioma 1: Pareto ottimalità} \label{ax1}
+			La soluzione equa $\mathcal{S}(U)$ è Pareto ottima.
+		\end{exampleblock}
+		% PAreto ottima: non esiste un'allocazione $u \in U$ tale che $ u \ge \mathcal{S}(U)$ e $ u \ne \mathcal{S}(U)$.
+		\begin{exampleblock}{Assioma 2: Simmetria} \label{ax2}
+			Se $\mathcal{I}:\mathbb{R}^2 \rightarrow \mathbb{R}^2$ è un operatore di permutazione definito da $\mathcal{I}((u_1,u_2)) = (u_1,u_2)$, allora 
+			\begin{equation}
+				\mathcal{S}(\mathcal{I}(U)) = \mathcal{I}(\mathcal{S}(U)).
+			\end{equation}
+		\end{exampleblock}
+		% l'allocazione equa nel sistema permutato, $\mathcal{S}(\mathcal{I}(U))$, è uguale alla permutazione dell'allocazione equa nel sistema originario, $\mathcal{I}(\mathcal{S}(U))$.
+		\begin{exampleblock}{Assioma 3: Invarianza affine} \label{ax3}
+			Se $A: \mathbb{R}^2 \rightarrow \mathbb{R}^2$ è un operatore affine definito da $A(u_1,u_2) = (A_1(u_1),A_2(u_2))$, con $A_i(u) = c_iu + d_i$ e $c_i>0$, allora 
+			\begin{equation}
+				\mathcal{S}(A(U)) = A(\mathcal{S}(U)).
+			\end{equation}
+		\end{exampleblock}
+		% l'allocazione equa nel sistema affinemente trasformato, \mathcal{S}(A(U)), è uguale alla trasformazione affine dell'allocazione equa nel sistema originario, A(\mathcal{S}(U)).
+	\end{frame}
+	
+	\begin{frame}
+		\begin{exampleblock}{Assioma 4: Indipendenza da alternative irrilevanti} \label{ax4}
+			Se $U$ e $W$ sono due insiemi di utilità tali che $U \subset W$, e $\mathcal{S}(W) \in U$, allora
+			\vspace{-0.2cm}
+			\begin{equation}
+				\mathcal{S}(U) = \mathcal{S}(W).
+				\vspace{-0.2cm}
+			\end{equation}
+		\end{exampleblock}
+		\begin{exampleblock}{Assioma 5: Monotonia} \label{ax5}
+			Siano $U$ e $W$ due insiemi di utilità, tali che la massima utilità possibile per il giocatore $1$ è uguale, i.e., $u_1^\star = w_1^{\star}$. Se per ogni livello di utilità che il giocatore $1$ può richiedere, la massima utilità possibile che il giocatore $2$ può avere simultaneamente è maggiore o uguale in $W$, allora il livello di utilità del giocatore $2$ nell'allocazione equa deve essere maggiore o uguale in $W$, i.e., $\mathcal{S}(U)_2 \le \mathcal{S}(W)_2$.
+			\vspace{-0.3cm}
+			\begin{equation}
+				u_1^\star = w_1^{\star}, \ u_2^\star \le w_2^{\star} \implies \mathcal{S}(U)_2 \le \mathcal{S}(W)_2
+				\vspace{-0.3cm}
+			\end{equation}
+			
+		\end{exampleblock}
+	\end{frame}
+	
+	\begin{frame}
+		\begin{exampleblock}{}
+			Non esiste uno schema di equità che soddisfa tutti e 5 gli assiomi. 
+		\end{exampleblock}
+	\end{frame}
+	
+	\subsection{Equità proporzionale}
+	
+	\begin{frame}{Equità proporzionale (PF)}
+		\begin{block}{Soluzione di Nash (Assiomi 1-4)}
+			Un trasferimento di risorse tra 2 giocatori è favorevole ed equo se la percentuale di incremento dell'utilità di un giocatore è maggiore della percentuale di decremento dell'utilità dell'altro giocatore.
+		\end{block}
+		\begin{block}{	Generalizzazione a più giocatori: \textit{equità proporzionale} }
+			L'allocazione equa proporzionale è tale che, se paragonata a ogni altra possibile allocazione di utilità, la variazione proporzionale aggregata è minore o uguale a $0$:
+			\vspace{-0.3cm}
+			\begin{equation}
+				\sum_{j=1}^n \frac{u_j - \mathcal{S}^{PF}(U)_j}{\mathcal{S}^{PF}(U)_j} \le 0, 	\quad \forall u \in U.
+			\end{equation}
+			\vspace{-0.5cm}
+		\end{block}
+	\end{frame}
+	
+	\begin{frame}
+		Se $U$ è convesso, l'allocazione equa secondo l'equità proporzionale $\mathcal{S}^{PF}(U)$ si può ottenere come la (unica) soluzione ottima dei seguenti problemi equivalenti.
+		\begin{block}{Matematicamente}
+			\vspace{-0.6cm}
+			\begin{equation}
+				\begin{split}
+					\underset{u}{\text{max}} & \qquad \sum_{j=1}^n \log{u_j} \\
+					\text{t.c.} & \qquad u \in U;
+				\end{split}
+			\end{equation}
+			o equivalentemente
+			\vspace{-0.3cm}
+			\begin{equation}
+				\begin{split}
+					\underset{u}{\text{max}} & \qquad \prod_{j=1}^n u_j \\
+					\text{t.c.} & \qquad u \in U.
+				\end{split}
+			\end{equation}
+			\vspace{-0.3cm}
+		\end{block}
+	\end{frame}
+	
+	%\begin{frame}{Proprietà}
+	%	Quest'ultima scrittura suggerisce che l'equità proporzionale (PF) restituisce un'allocazione che risulta essere
+	%	\begin{itemize}
+		%		\item Pareto-ottimale \\
+		%		\item invariante-in-scala: $\mathcal{S}^{PF}(\Sigma U) = \Sigma \mathcal{S}^{PF}(U)$.
+		%	\end{itemize}
+	%\end{frame}
+	
+	\subsection{Equità max-min}
+	
+	\begin{frame}{Equità max-min (MMF)}
+		\begin{block}{Kalai-Smorodinsky(Assiomi 1-3,5) e Giustizia di Rawls}
+			\textbf{(KS):} La soluzione KS intende assegnare a ogni giocatore la più grande frazione possibile della loro massima utilità.\\
+			%		\textbf{Criticità}: in una situazione in cui ci sono più di 2 giocatori, questa allocazione potrebbe non essere Pareto-ottima, quindi ci potrebbe essere uno spreco di risorse.
+			%	\end{block}
+		%\begin{block}{Giustizia di Rawls}
+		\textbf{(RJ):} L'idea della giustizia di Rawls intende assegnare priorità a coloro che stanno meno bene per garantire il più alto livello minimo di utilità ottenuto.
+	\end{block}
+	\begin{block}{Generalizzazione della giustizia di Rawls e della soluzione KS nel problema a due giocatori: \textit{equità max-min} }
+		L'equità max-min intende massimizzare la minima utilità ottenuta da tutti i giocatori.
+	\end{block}
+\end{frame}
+
+\begin{frame}
+	\begin{block}{Assunzione 0}
+		I problemi sono tutti normalizzati, cioè i giocatori hanno la stessa massima utilità possibile.
+	\end{block}
+	%	\begin{block}{Equità max-min}
+		%		\begin{itemize}
+			%			\item \textit{Iterazioni}:
+			%			\vspace{-0.1cm}
+			%			\begin{enumerate}
+				%			\item central decision maker (CDM) massimizza il livello di utilità più basso tra tutti i giocatori; \\
+				%			\item assegnato a ogni giocatore il livello minimo, si massimizza il secondo livello minimo tra i giocatori; \\
+				%			\item e così via.\\
+				%			\end{enumerate}
+			%			\item \textit{Risultato}:
+			%			la distribuzione dei livelli di utilità per ogni altra allocazione che assegna un'utilità strettamente maggiore per uno specifico livello è tale che esiste un'utilità più bassa che è stata strettamente diminuita.
+			%			% In altre parole, ogni altra allocazione può solo beneficiare i ricchi a discapito dei poveri (in termini di utilità).
+			%			% intuitivamente: l'utilità max-min massimizza la minima utilità che tutti i giocatori derivano
+			%		\end{itemize}
+		%	\end{block}
+	%\end{frame}
+	%
+	%\begin{frame}
+	Sia $T: \mathbb{R}^n \rightarrow \mathbb{R}^n$ un operatore di riordino
+	\begin{equation*}
+		T(y) = (y_{(1)}, \dots, y_{(n)}), \quad y_{(1)} \le \dots \le y_{(n)},
+	\end{equation*}
+	dove $y_{(i)}$ è l'$i$-esimo elemento più piccolo di $y$. 
+	% Lo schema di equità max-min corrisponde a massimizzare $T(u)$ su $U$ secondo il criterio lessicografico.
+	\begin{block}{Matematicamente}
+		Trovare un'allocazione $u^{\text{MMF}} \in U$ tale che la sua risultante distribuzione di utilità riordinata è lessicograficamente più grande rispetto a tutte le altre distribuzioni di utilità riordinate:
+		\vspace{-0.4cm}
+		\begin{equation}
+			T(u^{\text{MMF}}) \succeq T(u), \quad \forall u \in U.
+		\end{equation}
+		\vspace{-0.5cm}
+	\end{block}
+\end{frame}
+
+%\begin{frame}{Proprietà}
+%	\begin{itemize}
+	%		\item L'esistenza di un'equa allocazione max-min è garantita sotto deboli condizioni (e.g., se $U$ è compatto).\\
+	%		\item Per costruzione si deduce la Pareto-ottimalità.\\
+	%		\item Dal momento che si gestiscono utilità normalizzate, l'equità max-min risulta invariante-in-scala: $\mathcal{S}^{MMF}(\Sigma U) = \Sigma \mathcal{S}^{MMF}(U)$.
+	%	\end{itemize}
+%\end{frame}
+
+\section{Limiti}
+
+\begin{frame}{The Price of Fairness}
+	\begin{block}{Assunzione 1} \label{A1}
+		L'insieme delle utilità $U$ è compatto e convesso.
+	\end{block}
+	\begin{exampleblock}{Proposizione: Famiglia di problemi}
+		Sia l'insieme delle risorse $X \subset \mathbb{R}^m_+$ compatto, convesso e monotono. Si supponga che la funzione di utilità applicata al $j$-esimo giocatore sia tale che $f_j(x) = \overline{f}_j(x_j)$, per ogni $x \in X$, con $\overline{f}_j: \mathbb{R}^{m_j} \rightarrow \mathbb{R}$, e $x^T = [x_1^T \ x_2^T \ \dots \ x_n^T]$, dove $m_1+\dots+m_n=m$. Inoltre, $\overline{f}_j$ è non decrescente in ogni argomento, concava, limitata e continua su $X$, e $\overline{f}_j(0)=0$. Allora, l'insieme delle utilità $U$ risultante è compatto, convesso, e monotono.
+	\end{exampleblock}
+\end{frame}
+
+\begin{frame}
+	\begin{exampleblock}{Teorema: Uguali massime utilità possibili}
+		Si consideri un problema di allocazione delle risorse con $n$ giocatori, $n \ge 2$. Sia $U \subset \mathbb{R}^n_+$ l'insieme delle utilità tale che soddisfa A.1. Se tutti i giocatori hanno la stessa utilità massima raggiungibile, che è maggiore di $0$, allora
+		\begin{enumerate}
+			\item il prezzo dell'equità proporzionale è limitato da
+			\vspace{-0.3cm}
+			\begin{equation}
+				\text{POF}(U;\mathcal{S}^{\text{PF}}) \le 1 - \frac{2 \sqrt{n} - 1}{n},
+			\end{equation}
+			\item il prezzo dell'equità max-min è limitato da
+			\vspace{-0.3cm}
+			\begin{equation}
+				\text{POF}(U;\mathcal{S}^{\text{MMF}}) \le 1 - \frac{4n}{(n+1)^2}.
+			\end{equation}
+		\end{enumerate}
+		Inoltre, il limite dell'equità proporzionale è stretto se $\sqrt{n} \in \mathbb{N}$, mentre quello dell'equità proporzionale lo è per ogni $n$.
+	\end{exampleblock}
+\end{frame}
+
+\begin{frame}
+	\begin{exampleblock}{Teorema: Diverse massime utilità possibili}
+		\vspace{-0.1cm}
+		Si consideri un problema di allocazione delle risorse con $n$ giocatori, $n \ge 2$. Sia $U \subset \mathbb{R}^n_+$ l'insieme delle utilità tale che soddisfa A.1. Se tutti i giocatori hanno utilità massima raggiungibile maggiore di $0$, allora
+		\vspace{-0.1cm}
+		\begin{enumerate}
+			\item il prezzo dell'equità proporzionale è limitato da
+			\vspace{-0.3cm}
+			\begin{multline}
+				\text{POF}(U;\mathcal{S}^{\text{PF}}) \le 1 - \frac{2 \sqrt{n} - 1}{n} \frac{\min_{j \in \{1,\dots,n\}} u_j^{\star} }{\max_{j \in \{1,\dots,n\}} u_j^{\star}} - \frac{1}{n} + \\ + \frac{\min_{j \in \{1,\dots,n\}} u_j^{\star}}{\sum_{j=1}^n u_j^{\star}};
+			\end{multline}
+			\item il prezzo dell'equità max-min è limitato da
+			\vspace{-0.3cm}
+			\begin{equation}
+				\text{POF}(U;\mathcal{S}^{\text{MMF}}) \le 1 - \frac{4n}{(n+1)^2} \frac{\frac{1}{n}{\sum_{j=1}^n u_j^{\star}}}{\max_{j \in \{1,\dots,n\}} u_j^{\star}}.
+				\vspace{-0.3cm}
+			\end{equation}
+		\end{enumerate}
+		\vspace{-0.1cm}
+	\end{exampleblock}
+\end{frame}
+
+\section{Conclusione}
+
+\begin{frame}{Conclusione}
+	L'analisi svolta è precisa e applicabile a una vasta varietà di problemi di allocazione delle risorse.
+	\begin{exampleblock}{Osservazione 1}
+		Il "prezzo" di una soluzione equa è presumibilmente piccolo quando il numero di giocatori è basso.
+	\end{exampleblock}
+	\begin{exampleblock}{Osservazione 2}
+		L'equità proporzionale è una teoria che comporta un prezzo ben più basso rispetto a quello dell'equità max-min. 
+	\end{exampleblock}
+\end{frame}
+
+\section{Applicazione}
+
+\begin{frame}{Presentazione del problema}
+	\begin{block}{Problema}
+		Un condominio da 6 appartamenti ha installato dei pannelli fotovoltaici che creano energia elettrica pari a 30 kWh al giorno. Questo totale viene normalmente suddiviso tra le 6 utenze in base alle quote di ciascuna. Se una famiglia va in vacanza, l'appartamento consuma meno, quindi c'è più energia a disposizione per le altre. Come distribuire questa energia in più?
+	\end{block}
+	\begin{block}{Risoluzione}
+		Per ogni famiglia si cerca la percentuale del rispettivo surplus (energia che non viene normalmente coperta dai fotovoltaici) che è coperta dal fotovoltaico aggiuntivo.
+	\end{block}
+\end{frame}
+
+\begin{frame}{Dati}
+	$n=6$ appartamenti\\
+	Disponibilità giornaliera dei pannelli fotovoltaici: $30$ kWh\\
+	Prezzo dell'energia: $0.277$ \euro/kWh
+	\begin{tabular}{|l|l|l|l|l|}
+		\hline
+		\textbf{Presenze} & \textbf{Nomi} & \textbf{Copertura} & \textbf{Surplus} & \textbf{Fisso}\\
+		\hline
+		1 & Bianchi & 2,647058824 & 1,452941176 & 1,5 \\
+		1 & Rossi & 3,235294118 & 4,164705882 & 1,5	\\
+		1 & Verdi & 3,529411765 & 1,970588235 & 1,5	\\
+		0 & Longo & 5,882352941 & 3,117647059 & 1,5	\\
+		0 & Costa & 6,470588235 & 3,529411765 & 2 \\
+		1 & Gatti & 8,235294118 & 5,764705882 & 2 \\
+		\hline
+	\end{tabular}
+\end{frame}
+
+\begin{frame}{Soluzione utilitaria}
+	%	\begin{equation}
+		%		\begin{split}
+			%			\underset{y}{\text{max}} & \qquad e^T u, \\
+			%			\text{t.c.} & \qquad u \in U.
+			%		\end{split}
+		%	\end{equation}
+	\begin{center}
+		\begin{tabular}{|l|l|l|}
+			\hline
+			\textbf{Nomi} & \textbf{Copertura aggiuntiva} & \textbf{Costo}\\
+			\hline
+			Bianchi & $1.452941176$ & $0.00$ \\
+			Rossi & $4.164705882$ & $0.00$ \\
+			Verdi & $1.970588235$ & $0.00$ \\
+			Gatti & $1.264705883$ & $1.25$ \\
+			\hline
+		\end{tabular}
+	\end{center}
+	\begin{block}{Soluzione}
+		\vspace{-0.7cm}
+		\begin{equation}
+			\begin{split}
+				\text{SYSTEM}(U) = \sup \{e^T u | u \in U\} = \\
+				=  100.0 + 100.0 + 100.0 + 21.94 = 321.94
+			\end{split}
+		\end{equation}
+		\vspace{-0.5cm}
+	\end{block}
+Link al codice: \url{https://github.com/Daldossi/The-Price-of-Fairness/blob/main/Fairness_Utilitarian.py}
+\end{frame}
+
+\begin{frame}{Limiti}
+	\begin{block}{Teorema: Uguali massime utilità possibili}
+		Abbiamo $ n = 6 > 2$ giocatori, $U \subset \mathbb{R}^6_+$ è compatto e convesso. Tutti i giocatori hanno la stessa massima utilità, che è maggiore di 0, allora
+		\begin{equation}
+			\begin{split}
+				& \text{POF}(U;\mathcal{S}^{\text{PF}}) \le 1 - \frac{2\sqrt{n}-1}{n} = 0.3501700857389407, \\ 
+				& \text{POF}(U;\mathcal{S}^{\text{MMF}}) \le 1 - \frac{4n}{(n+1)^2} = 0.5102040816326531. 
+			\end{split}
+		\end{equation}
+	\end{block}
+\end{frame}
+
+\end{document}
+
