@@ -73,7 +73,6 @@ def UTI(Ks, RC):
     Parameters
     ----------
     Ks : lista : lista di surplus (output di New)
-    prezzo: intero : prezzo dell'energia in €/kWh 
     RC : intero : massima capacità a disposizione
     
     Returns
